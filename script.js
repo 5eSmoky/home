@@ -1,3 +1,4 @@
+function initBookingCalendar() {
 const fallbackBlockedDates = [
   "2026-07-04",
   "2026-07-05",
@@ -40,6 +41,7 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 const CLEANING_FEE = 450;
 const PET_FEE = 150;
 const STR_TAX_RATE = 0.1275;
+const MIN_NIGHTS = 3;
 
 const today = new Date();
 let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -100,6 +102,10 @@ function expandRange(startKey, endKey) {
 
 function hasBlockedNight(arrival, departure) {
   return expandRange(arrival, departure).some((date) => blockedDates.has(date));
+}
+
+function getNightCount(arrival, departure) {
+  return expandRange(arrival, departure).length;
 }
 
 function getNightlyPrice(key) {
@@ -189,6 +195,11 @@ function renderRangeQuote(arrival, departure) {
 
   if (!quote.nights.length) {
     selectedPriceLabel.textContent = "Choose a checkout date after arrival.";
+    return;
+  }
+
+  if (quote.nights.length < MIN_NIGHTS) {
+    selectedPriceLabel.textContent = `${MIN_NIGHTS}-night minimum. Please choose a longer stay.`;
     return;
   }
 
@@ -361,12 +372,14 @@ function syncCalendarToInput() {
 
 async function loadAvailability() {
   if (!calendarConfig.apiUrl || calendarConfig.apiUrl.includes("PASTE_")) {
-    setCalendarStatus("Live calendar not connected yet. Showing sample blocked nights.", "warning");
+    console.debug("Availability calendar is not configured.");
+    setCalendarStatus("Calendar is temporarily unavailable. Please email us for availability.", "warning");
     renderCalendar();
     return;
   }
 
-  setCalendarStatus("Checking live Airbnb and direct-booking calendar...");
+  console.debug("Loading availability calendar.");
+  setCalendarStatus("Loading calendar...");
 
   try {
     const response = await fetch(`${calendarConfig.apiUrl}?action=availability`, {
@@ -384,10 +397,15 @@ async function loadAvailability() {
     (data.blockedDates || []).forEach((date) => blockedDates.add(date));
     availabilityLoaded = true;
 
-    setCalendarStatus(`Live calendar synced. ${blockedDates.size} unavailable nights loaded.`, "success");
+    console.debug("Availability calendar loaded.", {
+      unavailableNightCount: blockedDates.size,
+      generatedAt: data.generatedAt,
+    });
+    setCalendarStatus("Select your dates.", "success");
     renderCalendar();
   } catch (error) {
-    setCalendarStatus("Live calendar could not be reached. Showing sample blocked nights.", "warning");
+    console.debug("Availability calendar failed to load.", error);
+    setCalendarStatus("Calendar is temporarily unavailable. Please refresh or email us for availability.", "warning");
     renderCalendar();
   }
 }
@@ -473,6 +491,11 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (getNightCount(arrival, departure) < MIN_NIGHTS) {
+    formNote.textContent = `${MIN_NIGHTS}-night minimum. Please choose a longer stay.`;
+    return;
+  }
+
   if (hasBlockedNight(arrival, departure)) {
     formNote.textContent = "Those dates include an unavailable night. Please choose another range.";
     return;
@@ -525,3 +548,10 @@ form.addEventListener("submit", async (event) => {
 
 renderCalendar();
 loadAvailability().then(showCheckoutReturnStatus);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initBookingCalendar);
+} else {
+  initBookingCalendar();
+}

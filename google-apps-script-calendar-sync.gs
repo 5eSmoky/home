@@ -15,14 +15,15 @@ const CONFIG = {
   STRIPE_SECRET_KEY: "sk_test_51TpTE29eCKmHydxwksNYwiC0hc58GLtuJGBk65qZc2FzF3qxvwaY5T5zrYpEPUuCKGFEHBUSCygBZlVVL6PA8o2p001rEgbWSg",
 
   // Public website URL, without a trailing slash.
-  SITE_URL: "https://fiveelementsdestin.com",
+  SITE_URL: "https://fiveelementssmoky.com",
 
   // Public URL where the website serves price-calendar.js.
-  PRICE_CALENDAR_URL: "https://fiveelementsdestin.com/price-calendar.js",
+  PRICE_CALENDAR_URL: "https://fiveelementssmoky.com/price-calendar.js",
 
   CLEANING_FEE: 450,
   PET_FEE: 150,
   STR_TAX_RATE: 0.1275,
+  MIN_NIGHTS: 3,
 };
 
 function doGet(event) {
@@ -55,6 +56,10 @@ function doPost(event) {
 
   if (!arrival || !departure || departure <= arrival) {
     return jsonResponse({ ok: false, message: "Choose valid arrival and departure dates." });
+  }
+
+  if (getNightCount(arrival, departure) < CONFIG.MIN_NIGHTS) {
+    return jsonResponse({ ok: false, message: `${CONFIG.MIN_NIGHTS}-night minimum. Please choose a longer stay.` });
   }
 
   const guestCount = Number(payload.guests || 0);
@@ -110,6 +115,10 @@ function createCheckoutSession(payload) {
 
   if (!arrival || !departure || departure <= arrival) {
     return jsonResponse({ ok: false, message: "Choose valid arrival and departure dates." });
+  }
+
+  if (getNightCount(arrival, departure) < CONFIG.MIN_NIGHTS) {
+    return jsonResponse({ ok: false, message: `${CONFIG.MIN_NIGHTS}-night minimum. Please choose a longer stay.` });
   }
 
   const guestCount = Number(payload.guests || 0);
@@ -258,6 +267,10 @@ function expandRange(arrival, departure) {
   }
 
   return dates;
+}
+
+function getNightCount(arrival, departure) {
+  return expandRange(arrival, departure).length;
 }
 
 function getQuoteLineItems(quote) {
