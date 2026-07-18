@@ -1,12 +1,12 @@
 {
-  "name": "five-elements-booking-backend",
+  "name": "five-elements-smoky-bookings",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:local": "wrangler d1 execute five-elements-bookings --local --file=schema.sql",
-    "db:remote": "wrangler d1 execute five-elements-bookings --remote --file=schema.sql",
+    "db:local": "wrangler d1 execute five-elements-smoky-bookings --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute five-elements-smoky-bookings --remote --file=schema.sql",
     "test": "node --test"
   },
   "devDependencies": {

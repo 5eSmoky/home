@@ -10,7 +10,7 @@ database_id = "315dc4a6-b28b-4db7-b25d-01ec54727922"
 [vars]
 ALLOWED_ORIGIN = "https://5esmoky.github.io"
 SITE_URL = "https://5esmoky.github.io/home/"
-PUBLIC_API_URL = "PASTE_CLOUDFLARE_WORKER_URL_HERE"
+PUBLIC_API_URL = "https://five-elements-smoky-bookings.workers.dev"
 PRICE_CALENDAR_URL = "https://5esmoky.github.io/home/price-calendar.js"
 OWNER_EMAIL = "fiveelementssmoky@gmail.com"
 EMAIL_PROVIDER = "apps_script"

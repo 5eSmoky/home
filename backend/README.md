@@ -58,7 +58,7 @@ From this directory:
 ```sh
 npm install
 npx wrangler login
-npx wrangler d1 create five-elements-bookings
+npx wrangler d1 create five-elements-smoky-bookings
 ```
 
 Paste the returned database ID into `wrangler.toml`, then set `PUBLIC_API_URL` and the production site origin. Keep `EMAIL_PROVIDER = "apps_script"`. Apply the schema:

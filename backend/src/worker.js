@@ -319,7 +319,7 @@ async function sendEmail(to, subject, text, env) {
   }
 
   if (env.EMAIL_PROVIDER !== "resend") throw new Error("EMAIL_PROVIDER must be apps_script or resend.");
-  const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json", "User-Agent": "five-elements-bookings/1.0" }, body: JSON.stringify({ from: env.FROM_EMAIL, to: [to], subject, text }) });
+  const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json", "User-Agent": "five-elements-smoky-bookings/1.0" }, body: JSON.stringify({ from: env.FROM_EMAIL, to: [to], subject, text }) });
   if (!response.ok) throw new Error(`Email delivery returned ${response.status}.`);
 }
 
