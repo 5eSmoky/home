@@ -301,7 +301,25 @@ async function sendOwnerReviewEmail(booking, token, env) {
 }
 
 async function sendEmail(to, subject, text, env) {
-  const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ from: env.FROM_EMAIL, to: [to], subject, text }) });
+  if ((env.EMAIL_PROVIDER || "apps_script") === "apps_script") {
+    const response = await fetch(env.CALENDAR_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "sendBookingEmail",
+        token: env.CALENDAR_COMMAND_TOKEN,
+        to,
+        subject,
+        body: text,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.message || `Apps Script email delivery returned ${response.status}.`);
+    return;
+  }
+
+  if (env.EMAIL_PROVIDER !== "resend") throw new Error("EMAIL_PROVIDER must be apps_script or resend.");
+  const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json", "User-Agent": "five-elements-bookings/1.0" }, body: JSON.stringify({ from: env.FROM_EMAIL, to: [to], subject, text }) });
   if (!response.ok) throw new Error(`Email delivery returned ${response.status}.`);
 }
 

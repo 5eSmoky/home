@@ -5,6 +5,15 @@ const CONFIG = {
   CALENDAR_COMMAND_TOKEN: PropertiesService.getScriptProperties().getProperty("CALENDAR_COMMAND_TOKEN") || "",
 };
 
+// Run this once from the Apps Script editor before deploying. It authorizes
+// Calendar and MailApp without sending a test message.
+function authorizeServices() {
+  const calendar = CalendarApp.getCalendarById(CONFIG.DIRECT_BOOKING_CALENDAR_ID);
+  if (!calendar) throw new Error("Direct-booking calendar was not found.");
+  Logger.log(`Calendar connected: ${calendar.getName()}`);
+  Logger.log(`Remaining daily email recipients: ${MailApp.getRemainingDailyQuota()}`);
+}
+
 // Public, read-only availability endpoint.
 function doGet(event) {
   if ((event.parameter.action || "availability") !== "availability") {
@@ -21,10 +30,41 @@ function doGet(event) {
 // The only write operation is a paid calendar hold authorized by the Worker.
 function doPost(event) {
   const payload = JSON.parse(event.postData.contents || "{}");
+  if (payload.action === "sendBookingEmail") {
+    return sendBookingEmail(payload);
+  }
   if (payload.action !== "createPaidCalendarHold") {
     return jsonResponse({ ok: false, message: "Unknown action." });
   }
   return createPaidCalendarHold(payload);
+}
+
+function sendBookingEmail(payload) {
+  if (!CONFIG.CALENDAR_COMMAND_TOKEN || payload.token !== CONFIG.CALENDAR_COMMAND_TOKEN) {
+    return jsonResponse({ ok: false, message: "Unauthorized email command." });
+  }
+
+  const recipient = String(payload.to || "").trim();
+  const subject = String(payload.subject || "").trim().slice(0, 180);
+  const body = String(payload.body || "").slice(0, 20000);
+
+  if (!/^\S+@\S+\.\S+$/.test(recipient) || /[\r\n]/.test(recipient) || !subject || /[\r\n]/.test(subject) || !body) {
+    return jsonResponse({ ok: false, message: "Invalid email command." });
+  }
+
+  const remainingQuota = MailApp.getRemainingDailyQuota();
+  if (remainingQuota < 1) {
+    return jsonResponse({ ok: false, message: "The Google Apps Script daily email quota has been reached." });
+  }
+
+  MailApp.sendEmail({
+    to: recipient,
+    subject,
+    body,
+    name: "Five Elements Smoky",
+  });
+
+  return jsonResponse({ ok: true, remainingQuota: remainingQuota - 1 });
 }
 
 function createPaidCalendarHold(payload) {

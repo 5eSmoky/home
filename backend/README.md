@@ -16,6 +16,8 @@ VERIFICATION_MODE = "disabled"
 
 In this mode, requests go directly to owner review and are prominently labeled **Unverified**. Turnstile, owner approval/rejection, Stripe invoices, payment holds, signed webhooks, email, and paid-only calendar blocking still operate normally.
 
+Email currently uses `MailApp` through the authenticated Google Apps Script endpoint, so the GitHub Pages site does not need a custom sending domain. The Gmail account that owns and deploys the script is the sender. A consumer Gmail account can currently send to 100 recipients per day through Apps Script; Google Workspace accounts have a higher quota.
+
 After Truvi credentials and its account-specific API mapping are confirmed:
 
 1. Change `VERIFICATION_MODE` to `"truvi"` in `wrangler.toml`.
@@ -34,7 +36,6 @@ The old Stripe test key and Airbnb iCal token appeared in repository history. Ro
 - Cloudflare Workers, D1, and Turnstile
 - Truvi with Screening + ID Verification and API access (can be added later)
 - Stripe Invoicing
-- Resend with a verified sending domain
 - The existing Google Apps Script and direct-booking calendar
 
 Truvi supplies the production booking endpoint, webhook secret, and exact account payload during onboarding. Its account-specific field mapping is isolated in `src/truvi.js`; confirm those aliases with the documentation Truvi provides before production use.
@@ -60,7 +61,7 @@ npx wrangler login
 npx wrangler d1 create five-elements-bookings
 ```
 
-Paste the returned database ID into `wrangler.toml`, then set `PUBLIC_API_URL`, `FROM_EMAIL`, and the production site origin. Apply the schema:
+Paste the returned database ID into `wrangler.toml`, then set `PUBLIC_API_URL` and the production site origin. Keep `EMAIL_PROVIDER = "apps_script"`. Apply the schema:
 
 ```sh
 npm run db:remote
@@ -71,7 +72,6 @@ Store the secrets needed for the initial verification-disabled launch (never put
 ```sh
 npx wrangler secret put STRIPE_SECRET_KEY
 npx wrangler secret put STRIPE_WEBHOOK_SECRET
-npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put TURNSTILE_SECRET_KEY
 npx wrangler secret put CALENDAR_API_URL
 npx wrangler secret put CALENDAR_COMMAND_TOKEN
@@ -113,4 +113,4 @@ Run `npm test`, deploy using Stripe test mode, and verify all of these cases:
 9. Replayed or forged Stripe and Truvi events are rejected or ignored.
 10. A calendar conflict produces an automatic refund and owner/guest alerts.
 
-Do not switch Stripe, Truvi, or Resend to production until the full test matrix passes.
+Do not switch Stripe or Truvi to production until the full test matrix passes.
