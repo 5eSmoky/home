@@ -18,11 +18,11 @@ const CONFIG = {
   // Use a long random value before going live.
   STRIPE_WEBHOOK_TOKEN: "PASTE_RANDOM_WEBHOOK_TOKEN_HERE",
 
-  // Public website URL, without a trailing slash.
-  SITE_URL: "https://fiveelementsdestin.com",
+  // Public website URL.
+  SITE_URL: "https://5esmoky.github.io/home/",
 
   // Public URL where the website serves price-calendar.js.
-  PRICE_CALENDAR_URL: "https://fiveelementsdestin.com/price-calendar.js",
+  PRICE_CALENDAR_URL: "https://5esmoky.github.io/home/price-calendar.js",
 
   CLEANING_FEE: 450,
   PET_FEE: 150,
@@ -791,7 +791,7 @@ function getSafeReturnUrl(pageUrl) {
   const configuredUrl = CONFIG.SITE_URL && !CONFIG.SITE_URL.includes("PASTE_")
     ? CONFIG.SITE_URL
     : "";
-  const fallbackUrl = configuredUrl || "https://fiveelementsdestin.com";
+  const fallbackUrl = configuredUrl || "https://5esmoky.github.io/home/";
 
   if (!pageUrl) {
     return fallbackUrl;
